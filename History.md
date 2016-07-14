@@ -1,6 +1,6 @@
 ## [1.2.5-SNAPSHOT](https://github.com/cucumber/cucumber-jvm/compare/v1.2.4...master) (In Git)
 
-* [Java8] 
+* [Java8] Fix closing over local variables ([#916](https://github.com/cucumber/cucumber-jvm/issues/916), [#924](https://github.com/cucumber/cucumber-jvm/pull/924), [#929](https://github.com/cucumber/cucumber-jvm/pull/929) Alexander Torstling, Aslak Hellesøy) 
 * [Java8] Fix IllegalArgumentException on JDK 1.8.0_60 ([#912](https://github.com/cucumber/cucumber-jvm/issues/912), [#914](https://github.com/cucumber/cucumber-jvm/pull/914) Michael Wilkerson)
 * [picocontainer] Picocontainer lifecycle support([#994](https://github.com/cucumber/cucumber-jvm/pull/994), [#993](https://github.com/cucumber/cucumber-jvm/issues/993), [#992](https://github.com/cucumber/cucumber-jvm/pull/992) Richard Bradley)
 * [Core] Specifying plugins on the command line via `--plugin` clobbers settings in the code ([#860](https://github.com/cucumber/cucumber-jvm/pull/860) Björn Rasmusson)
