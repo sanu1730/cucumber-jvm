@@ -13,5 +13,5 @@ Feature: Cukes
     Given 5 unimplemented step
 
   @foo
-  Scenario:
+  Scenario: a
     Given I have 4 cukes in my belly
