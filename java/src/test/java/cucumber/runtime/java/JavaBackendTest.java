@@ -8,8 +8,8 @@ import cucumber.runtime.HookDefinition;
 import cucumber.runtime.StepDefinition;
 import cucumber.runtime.StepDefinitionMatch;
 import cucumber.runtime.java.stepdefs.Stepdefs;
-import gherkin.I18n;
-import gherkin.formatter.model.Step;
+import gherkin.GherkinDialect;
+import gherkin.pickles.PickleStep;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -76,7 +76,7 @@ public class JavaBackendTest {
         }
 
         @Override
-        public StepDefinitionMatch stepDefinitionMatch(String featurePath, Step step, I18n i18n) {
+        public StepDefinitionMatch stepDefinitionMatch(String featurePath, PickleStep step, GherkinDialect i18n) {
             throw new UnsupportedOperationException();
         }
 
