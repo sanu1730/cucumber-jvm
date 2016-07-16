@@ -1,18 +1,10 @@
 package cucumber.runtime.formatter;
 
+import cucumber.runner.EventBus;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.io.URLOutputStream;
 import cucumber.runtime.io.UTF8OutputStreamWriter;
-import gherkin.formatter.Formatter;
-import gherkin.formatter.Reporter;
-import gherkin.formatter.model.Background;
-import gherkin.formatter.model.Examples;
-import gherkin.formatter.model.Feature;
-import gherkin.formatter.model.Match;
-import gherkin.formatter.model.Result;
-import gherkin.formatter.model.Scenario;
-import gherkin.formatter.model.ScenarioOutline;
-import gherkin.formatter.model.Step;
+import cucumber.runtime.formatter.Formatter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -37,7 +29,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-class TestNGFormatter implements Formatter, Reporter, StrictAware {
+class TestNGFormatter implements Formatter, StrictAware {
 
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     private final Writer writer;
@@ -66,7 +58,7 @@ class TestNGFormatter implements Formatter, Reporter, StrictAware {
     }
 
     @Override
-    public void syntaxError(String state, String event, List<String> legalEvents, String uri, Integer line) {
+    public void setEventBus(EventBus bus) {
     }
 
     @Override
@@ -74,11 +66,7 @@ class TestNGFormatter implements Formatter, Reporter, StrictAware {
         TestMethod.treatSkippedAsFailure = strict;
     }
 
-    @Override
-    public void uri(String uri) {
-    }
-
-    @Override
+/*    @Override
     public void feature(Feature feature) {
         TestMethod.feature = feature;
         TestMethod.previousScenarioOutlineName = "";
@@ -130,17 +118,9 @@ class TestNGFormatter implements Formatter, Reporter, StrictAware {
     @Override
     public void result(Result result) {
         testMethod.results.add(result);
-    }
+    }*/
 
-    @Override
-    public void embedding(String mimeType, byte[] data) {
-    }
-
-    @Override
-    public void write(String text) {
-    }
-
-    @Override
+/*    @Override
     public void after(Match match, Result result) {
         testMethod.hooks.add(result);
     }
@@ -148,33 +128,29 @@ class TestNGFormatter implements Formatter, Reporter, StrictAware {
     @Override
     public void endOfScenarioLifeCycle(Scenario scenario) {
         testMethod.finish(document, root);
-    }
+    }*/
 
-    @Override
-    public void eof() {
-    }
-
-    @Override
-    public void done() {
-        try {
-            results.setAttribute("total", String.valueOf(getElementsCountByAttribute(suite, "status", ".*")));
-            results.setAttribute("passed", String.valueOf(getElementsCountByAttribute(suite, "status", "PASS")));
-            results.setAttribute("failed", String.valueOf(getElementsCountByAttribute(suite, "status", "FAIL")));
-            results.setAttribute("skipped", String.valueOf(getElementsCountByAttribute(suite, "status", "SKIP")));
-            suite.setAttribute("name", TestNGFormatter.class.getName());
-            suite.setAttribute("duration-ms", getTotalDuration(suite.getElementsByTagName("test-method")));
-            test.setAttribute("name", TestNGFormatter.class.getName());
-            test.setAttribute("duration-ms", getTotalDuration(suite.getElementsByTagName("test-method")));
-
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-            StreamResult streamResult = new StreamResult(writer);
-            DOMSource domSource = new DOMSource(document);
-            transformer.transform(domSource, streamResult);
-        } catch (TransformerException e) {
-            throw new CucumberException("Error transforming report.", e);
-        }
-    }
+//    @Override
+//    public void done() {
+//        try {
+//            results.setAttribute("total", String.valueOf(getElementsCountByAttribute(suite, "status", ".*")));
+//            results.setAttribute("passed", String.valueOf(getElementsCountByAttribute(suite, "status", "PASS")));
+//            results.setAttribute("failed", String.valueOf(getElementsCountByAttribute(suite, "status", "FAIL")));
+//            results.setAttribute("skipped", String.valueOf(getElementsCountByAttribute(suite, "status", "SKIP")));
+//            suite.setAttribute("name", TestNGFormatter.class.getName());
+//            suite.setAttribute("duration-ms", getTotalDuration(suite.getElementsByTagName("test-method")));
+//            test.setAttribute("name", TestNGFormatter.class.getName());
+//            test.setAttribute("duration-ms", getTotalDuration(suite.getElementsByTagName("test-method")));
+//
+//            Transformer transformer = TransformerFactory.newInstance().newTransformer();
+//            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+//            StreamResult streamResult = new StreamResult(writer);
+//            DOMSource domSource = new DOMSource(document);
+//            transformer.transform(domSource, streamResult);
+//        } catch (TransformerException e) {
+//            throw new CucumberException("Error transforming report.", e);
+//        }
+//    }
 
     @Override
     public void close() {
@@ -215,11 +191,11 @@ class TestNGFormatter implements Formatter, Reporter, StrictAware {
 
     private static class TestMethod {
 
-        static Feature feature;
+//        static Feature feature;
         static boolean treatSkippedAsFailure = false;
         static String previousScenarioOutlineName;
         static int exampleNumber;
-        final List<Step> steps = new ArrayList<Step>();
+/*        final List<Step> steps = new ArrayList<Step>();
         final List<Result> results = new ArrayList<Result>();
         final List<Result> hooks = new ArrayList<Result>();
         final Scenario scenario;
@@ -326,6 +302,6 @@ class TestNGFormatter implements Formatter, Reporter, StrictAware {
             exceptionElement.appendChild(stacktraceElement);
 
             return exceptionElement;
-        }
+        }*/
     }
 }

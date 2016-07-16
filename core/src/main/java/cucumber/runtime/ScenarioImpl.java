@@ -1,9 +1,12 @@
 package cucumber.runtime;
 
 import cucumber.api.Scenario;
-import gherkin.formatter.Reporter;
-import gherkin.formatter.model.Result;
-import gherkin.formatter.model.Tag;
+import cucumber.runner.EmbedEvent;
+import cucumber.runner.EventBus;
+import cucumber.runner.Result;
+import cucumber.runner.WriteEvent;
+import gherkin.pickles.Pickle;
+import gherkin.pickles.PickleTag;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -16,26 +19,24 @@ import static java.util.Arrays.asList;
 public class ScenarioImpl implements Scenario {
     private static final List<String> SEVERITY = asList("passed", "skipped", "pending", "undefined", "failed");
     private final List<Result> stepResults = new ArrayList<Result>();
-    private final Reporter reporter;
-    private final Set<Tag> tags;
+    private final List<PickleTag> tags;
     private final String scenarioName;
-    private final String scenarioId;
+    private final EventBus bus;
 
-    public ScenarioImpl(Reporter reporter, Set<Tag> tags, gherkin.formatter.model.Scenario gherkinScenario) {
-        this.reporter = reporter;
+    public ScenarioImpl(EventBus bus, List<PickleTag> tags, Pickle gherkinScenario) {
+        this.bus = bus;
         this.tags = tags;
         this.scenarioName = gherkinScenario.getName();
-        this.scenarioId = gherkinScenario.getId();
     }
 
-    void add(Result result) {
+    public void add(Result result) {
         stepResults.add(result);
     }
 
     @Override
     public Collection<String> getSourceTagNames() {
         Set<String> result = new HashSet<String>();
-        for (Tag tag : tags) {
+        for (PickleTag tag : tags) {
             result.add(tag.getName());
         }
         // Has to be a List in order for JRuby to convert to Ruby Array.
@@ -58,12 +59,16 @@ public class ScenarioImpl implements Scenario {
 
     @Override
     public void embed(byte[] data, String mimeType) {
-        reporter.embedding(mimeType, data);
+        if (bus != null) {
+            bus.send(new EmbedEvent(data, mimeType));
+        }
     }
 
     @Override
     public void write(String text) {
-        reporter.write(text);
+        if (bus != null) {
+            bus.send(new WriteEvent(text));
+        }
     }
 
     @Override
@@ -73,6 +78,6 @@ public class ScenarioImpl implements Scenario {
 
     @Override
     public String getId() {
-        return scenarioId;
+        return "";
     }
 }

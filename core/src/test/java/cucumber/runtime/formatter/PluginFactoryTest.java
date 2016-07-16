@@ -1,9 +1,12 @@
 package cucumber.runtime.formatter;
 
+import cucumber.runner.EventBus;
+import cucumber.runner.Result;
+import cucumber.runner.TestStepFinished;
 import cucumber.runtime.CucumberException;
+import cucumber.runtime.DefinitionMatch;
 import cucumber.runtime.Utils;
 import cucumber.runtime.io.UTF8OutputStreamWriter;
-import gherkin.formatter.model.Result;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -21,6 +24,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 public class PluginFactoryTest {
     private PluginFactory fc = new PluginFactory();
@@ -89,8 +93,9 @@ public class PluginFactoryTest {
             fc = new PluginFactory();
 
             ProgressFormatter plugin = (ProgressFormatter) fc.create("progress");
-
-            plugin.result(new Result("passed", null, null));
+            EventBus bus = new EventBus();
+            plugin.setEventBus(bus);
+            bus.send(new TestStepFinished(mock(DefinitionMatch.class), new Result("passed", null, null)));
 
             assertThat(mockSystemOut.toString(), is(not("")));
         } finally {

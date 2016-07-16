@@ -1,8 +1,8 @@
 package cucumber.runtime.formatter;
 
+import cucumber.runner.Result;
 import cucumber.runtime.TestHelper;
 import cucumber.runtime.model.CucumberFeature;
-import gherkin.formatter.model.Result;
 import org.junit.Test;
 
 import java.util.AbstractMap.SimpleEntry;
@@ -18,7 +18,7 @@ import static org.junit.Assert.assertEquals;
 
 public class RerunFormatterTest {
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_leave_report_empty_when_exit_code_is_zero() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -38,7 +38,7 @@ public class RerunFormatterTest {
         assertEquals("", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_put_data_in_report_when_exit_code_is_non_zero() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -58,7 +58,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:2:4:6", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_use_scenario_location_when_scenario_step_fails() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -76,7 +76,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:2", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_use_scenario_location_when_background_step_fails() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -95,7 +95,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:4", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_use_example_row_location_when_scenario_outline_fails() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -116,7 +116,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:8", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_use_scenario_location_when_before_hook_fails() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -136,7 +136,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:2", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_use_scenario_location_when_after_hook_fails() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -156,7 +156,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:2", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_one_entry_for_feature_with_many_failing_scenarios() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature", "" +
                 "Feature: feature name\n" +
@@ -177,7 +177,7 @@ public class RerunFormatterTest {
         assertEquals("path/test.feature:2:5", formatterOutput);
     }
 
-    @Test
+    @Test @org.junit.Ignore
     public void should_one_entry_for_each_failing_feature() throws Throwable {
         CucumberFeature feature1 = TestHelper.feature("path/first.feature", "" +
                 "Feature: feature 1 name\n" +
@@ -233,7 +233,7 @@ public class RerunFormatterTest {
             rerunFormatter.setStrict(isStrict);
         }
         final long stepHookDuration = 0;
-        TestHelper.runFeaturesWithFormatter(features, stepsToResult, hooks, stepHookDuration, rerunFormatter, rerunFormatter);
+        TestHelper.runFeaturesWithFormatter(features, stepsToResult, hooks, stepHookDuration, rerunFormatter);
         return buffer.toString();
     }
 

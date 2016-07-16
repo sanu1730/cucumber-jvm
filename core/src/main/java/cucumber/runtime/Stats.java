@@ -1,10 +1,10 @@
 package cucumber.runtime;
 
-import gherkin.formatter.AnsiFormats;
-import gherkin.formatter.Format;
-import gherkin.formatter.Formats;
-import gherkin.formatter.MonochromeFormats;
-import gherkin.formatter.model.Result;
+import cucumber.runner.Result;
+import cucumber.runtime.formatter.AnsiFormats;
+import cucumber.runtime.formatter.Format;
+import cucumber.runtime.formatter.Formats;
+import cucumber.runtime.formatter.MonochromeFormats;
 
 import java.io.PrintStream;
 import java.text.DecimalFormat;

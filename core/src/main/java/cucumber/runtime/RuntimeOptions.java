@@ -3,16 +3,17 @@ package cucumber.runtime;
 import cucumber.api.SnippetType;
 import cucumber.api.StepDefinitionReporter;
 import cucumber.api.SummaryPrinter;
+import cucumber.runner.EventBus;
 import cucumber.runtime.formatter.ColorAware;
 import cucumber.runtime.formatter.PluginFactory;
 import cucumber.runtime.formatter.StrictAware;
 import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.model.CucumberFeature;
 import cucumber.runtime.model.PathWithLines;
-import gherkin.I18n;
-import gherkin.formatter.Formatter;
-import gherkin.formatter.Reporter;
-import gherkin.util.FixJava;
+import cucumber.util.FixJava;
+import gherkin.GherkinDialect;
+import gherkin.GherkinDialectProvider;
+import cucumber.runtime.formatter.Formatter;
 
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -47,6 +48,7 @@ public class RuntimeOptions {
     private boolean monochrome = false;
     private SnippetType snippetType = SnippetType.UNDERSCORE;
     private boolean pluginNamesInstantiated;
+    private EventBus bus;
 
     /**
      * Create a new instance from a string of options, for example:
@@ -211,41 +213,22 @@ public class RuntimeOptions {
     }
 
     private int printI18n(String language) {
-        List<I18n> all = I18n.getAll();
-
-        if (language.equalsIgnoreCase("help")) {
-            for (I18n i18n : all) {
-                System.out.println(i18n.getIsoCode());
-            }
-            return 0;
-        } else {
-            return printKeywordsFor(language, all);
-        }
-    }
-
-    private int printKeywordsFor(String language, List<I18n> all) {
-        for (I18n i18n : all) {
-            if (i18n.getIsoCode().equalsIgnoreCase(language)) {
-                System.out.println(i18n.getKeywordTable());
-                return 0;
-            }
-        }
-
-        System.err.println("Unrecognised ISO language code");
-        return 1;
+        GherkinDialect dialect = new GherkinDialectProvider(language).getDefaultDialect();
+        return 0;
     }
 
     public List<CucumberFeature> cucumberFeatures(ResourceLoader resourceLoader) {
         return load(resourceLoader, featurePaths, filters, System.out);
     }
 
-    List<Object> getPlugins() {
+    public List<Object> getPlugins() {
         if (!pluginNamesInstantiated) {
             for (String pluginName : pluginFormatterNames) {
                 Object plugin = pluginFactory.create(pluginName);
                 plugins.add(plugin);
                 setMonochromeOnColorAwarePlugins(plugin);
                 setStrictOnStrictAwarePlugins(plugin);
+                setEventBusFormatterPlugins(plugin);
             }
             for (String pluginName : pluginStepDefinitionReporterNames) {
                 Object plugin = pluginFactory.create(pluginName);
@@ -262,10 +245,6 @@ public class RuntimeOptions {
 
     public Formatter formatter(ClassLoader classLoader) {
         return pluginProxy(classLoader, Formatter.class);
-    }
-
-    public Reporter reporter(ClassLoader classLoader) {
-        return pluginProxy(classLoader, Reporter.class);
     }
 
     public StepDefinitionReporter stepDefinitionReporter(ClassLoader classLoader) {
@@ -317,6 +296,13 @@ public class RuntimeOptions {
         if (plugin instanceof StrictAware) {
             StrictAware strictAware = (StrictAware) plugin;
             strictAware.setStrict(strict);
+        }
+    }
+
+    private void setEventBusFormatterPlugins(Object plugin) {
+        if (plugin instanceof Formatter && bus != null) {
+            Formatter formatter = (Formatter) plugin;
+            formatter.setEventBus(bus);
         }
     }
 
@@ -405,5 +391,9 @@ public class RuntimeOptions {
                 nameList.addAll(names);
             }
         }
+    }
+
+    void setEventBus(EventBus bus) {
+        this.bus = bus;
     }
 }

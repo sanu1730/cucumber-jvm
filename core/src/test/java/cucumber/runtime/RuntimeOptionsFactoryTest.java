@@ -2,8 +2,6 @@ package cucumber.runtime;
 
 import cucumber.api.CucumberOptions;
 import cucumber.api.SnippetType;
-import gherkin.formatter.JSONFormatter;
-import gherkin.formatter.PrettyFormatter;
 import org.junit.Test;
 
 import java.util.Iterator;

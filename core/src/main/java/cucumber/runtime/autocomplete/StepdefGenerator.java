@@ -2,9 +2,8 @@ package cucumber.runtime.autocomplete;
 
 import cucumber.runtime.StepDefinition;
 import cucumber.runtime.model.CucumberFeature;
-import cucumber.runtime.model.CucumberTagStatement;
-import gherkin.formatter.Argument;
-import gherkin.formatter.model.Step;
+import gherkin.pickles.Argument;
+import gherkin.pickles.PickleStep;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,7 +22,7 @@ public class StepdefGenerator {
         }
     };
 
-    private static final Comparator<CucumberTagStatement> CUCUMBER_TAG_STATEMENT_COMPARATOR = new Comparator<CucumberTagStatement>() {
+/*    private static final Comparator<CucumberTagStatement> CUCUMBER_TAG_STATEMENT_COMPARATOR = new Comparator<CucumberTagStatement>() {
         @Override
         public int compare(CucumberTagStatement a, CucumberTagStatement b) {
             return a.getVisualName().compareTo(b.getVisualName());
@@ -43,12 +42,12 @@ public class StepdefGenerator {
             for (CucumberFeature feature : features) {
                 List<CucumberTagStatement> cucumberTagStatements = feature.getFeatureElements();
                 for (CucumberTagStatement tagStatement : cucumberTagStatements) {
-                    List<Step> steps = tagStatement.getSteps();
-                    for (Step step : steps) {
+                    List<PickleStep> steps = tagStatement.getSteps();
+                    for (PickleStep step : steps) {
                         List<Argument> arguments = stepDefinition.matchedArguments(step);
                         if (arguments != null) {
                             MetaStepdef.MetaStep ms = new MetaStepdef.MetaStep();
-                            ms.name = step.getName();
+                            ms.name = step.getText();
                             for (Argument argument : arguments) {
                                 MetaStepdef.MetaArgument ma = new MetaStepdef.MetaArgument();
                                 ma.offset = argument.getOffset();
@@ -64,6 +63,6 @@ public class StepdefGenerator {
             result.add(metaStepdef);
         }
         return result;
-    }
+    }*/
 
 }

@@ -1,34 +1,31 @@
 package cucumber.runtime.model;
 
-import cucumber.runtime.FeatureBuilder;
-import cucumber.runtime.Runtime;
+import cucumber.runtime.CucumberException;
 import cucumber.runtime.io.MultiLoader;
 import cucumber.runtime.io.Resource;
 import cucumber.runtime.io.ResourceLoader;
-import gherkin.I18n;
-import gherkin.formatter.Formatter;
-import gherkin.formatter.Reporter;
-import gherkin.formatter.model.Background;
-import gherkin.formatter.model.Examples;
-import gherkin.formatter.model.Feature;
-import gherkin.formatter.model.Scenario;
-import gherkin.formatter.model.ScenarioOutline;
-import gherkin.formatter.model.Step;
+import cucumber.util.Encoding;
+import gherkin.AstBuilder;
+import gherkin.GherkinDialect;
+import gherkin.GherkinDialectProvider;
+import gherkin.Parser;
+import gherkin.ParserException;
+import gherkin.TokenMatcher;
+import gherkin.ast.GherkinDocument;
 
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class CucumberFeature {
+public class CucumberFeature implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String path;
-    private final Feature feature;
-    private CucumberBackground cucumberBackground;
-    private StepContainer currentStepContainer;
-    private final List<CucumberTagStatement> cucumberTagStatements = new ArrayList<CucumberTagStatement>();
-    private I18n i18n;
-    private CucumberScenarioOutline currentScenarioOutline;
+    private GherkinDialect i18n;
+    private GherkinDocument gherkinDocument;
 
     public static List<CucumberFeature> load(ResourceLoader resourceLoader, List<String> featurePaths, final List<Object> filters, PrintStream out) {
         final List<CucumberFeature> cucumberFeatures = load(resourceLoader, featurePaths, filters);
@@ -46,38 +43,46 @@ public class CucumberFeature {
 
     public static List<CucumberFeature> load(ResourceLoader resourceLoader, List<String> featurePaths, final List<Object> filters) {
         final List<CucumberFeature> cucumberFeatures = new ArrayList<CucumberFeature>();
-        final FeatureBuilder builder = new FeatureBuilder(cucumberFeatures);
         for (String featurePath : featurePaths) {
             if (featurePath.startsWith("@")) {
-                loadFromRerunFile(builder, resourceLoader, featurePath.substring(1), filters);
+                loadFromRerunFile(cucumberFeatures, resourceLoader, featurePath.substring(1), filters);
             } else {
-                loadFromFeaturePath(builder, resourceLoader, featurePath, filters, false);
+                loadFromFeaturePath(cucumberFeatures, resourceLoader, featurePath, filters, false);
             }
         }
         Collections.sort(cucumberFeatures, new CucumberFeatureUriComparator());
         return cucumberFeatures;
     }
 
-    private static void loadFromRerunFile(FeatureBuilder builder, ResourceLoader resourceLoader, String rerunPath, final List<Object> filters) {
+    private static void loadFromRerunFile(List<CucumberFeature> cucumberFeatures, ResourceLoader resourceLoader, String rerunPath, final List<Object> filters) {
         Iterable<Resource> resources = resourceLoader.resources(rerunPath, null);
         for (Resource resource : resources) {
-            String source = builder.read(resource);
+            String source = read(resource);
             if (!source.isEmpty()) {
                 for (String featurePath : source.split(" ")) {
-                    loadFromFileSystemOrClasspath(builder, resourceLoader, featurePath, filters);
+                    loadFromFileSystemOrClasspath(cucumberFeatures, resourceLoader, featurePath, filters);
                 }
             }
         }
     }
 
-    private static void loadFromFileSystemOrClasspath(FeatureBuilder builder, ResourceLoader resourceLoader, String featurePath, final List<Object> filters) {
+    static private String read(Resource resource) {
         try {
-            loadFromFeaturePath(builder, resourceLoader, featurePath, filters, false);
+            String source = Encoding.readFile(resource);
+            return source;
+        } catch (IOException e) {
+            throw new CucumberException("Failed to read resource:" + resource.getPath(), e);
+        }
+    }
+
+    private static void loadFromFileSystemOrClasspath(List<CucumberFeature> cucumberFeatures, ResourceLoader resourceLoader, String featurePath, final List<Object> filters) {
+        try {
+            loadFromFeaturePath(cucumberFeatures, resourceLoader, featurePath, filters, false);
         } catch (IllegalArgumentException originalException) {
             if (!featurePath.startsWith(MultiLoader.CLASSPATH_SCHEME) &&
                     originalException.getMessage().contains("Not a file or directory")) {
                 try {
-                    loadFromFeaturePath(builder, resourceLoader, MultiLoader.CLASSPATH_SCHEME + featurePath, filters, true);
+                    loadFromFeaturePath(cucumberFeatures, resourceLoader, MultiLoader.CLASSPATH_SCHEME + featurePath, filters, true);
                 } catch (IllegalArgumentException secondException) {
                     if (secondException.getMessage().contains("No resource found for")) {
                         throw new IllegalArgumentException("Neither found on file system or on classpath: " +
@@ -92,7 +97,7 @@ public class CucumberFeature {
         }
     }
 
-    private static void loadFromFeaturePath(FeatureBuilder builder, ResourceLoader resourceLoader, String featurePath, final List<Object> filters, boolean failOnNoResource) {
+    private static void loadFromFeaturePath(List<CucumberFeature> cucumberFeatures, ResourceLoader resourceLoader, String featurePath, final List<Object> filters, boolean failOnNoResource) {
         PathWithLines pathWithLines = new PathWithLines(featurePath);
         ArrayList<Object> filtersForPath = new ArrayList<Object>(filters);
         filtersForPath.addAll(pathWithLines.lines);
@@ -101,71 +106,42 @@ public class CucumberFeature {
             throw new IllegalArgumentException("No resource found for: " + pathWithLines.path);
         }
         for (Resource resource : resources) {
-            builder.parse(resource, filtersForPath);
+            Parser<GherkinDocument> parser = new Parser<GherkinDocument>(new AstBuilder());
+            TokenMatcher matcher = new TokenMatcher();
+
+            String source = read(resource);
+            try {
+                GherkinDocument gherkinDocument = parser.parse(source, matcher);
+                CucumberFeature feature = new CucumberFeature(gherkinDocument, pathWithLines.path);
+                cucumberFeatures.add(feature);
+            } catch (ParserException e) {
+                throw new CucumberException(e);
+            }
         }
     }
 
-    public CucumberFeature(Feature feature, String path) {
-        this.feature = feature;
+    public CucumberFeature(GherkinDocument gherkinDocument, String path) {
+        this.gherkinDocument = gherkinDocument;
         this.path = path;
+        if (gherkinDocument.getFeature() != null) {
+            setI18n(new GherkinDialectProvider(gherkinDocument.getFeature().getLanguage()).getDefaultDialect());
+        }
     }
 
-    public void background(Background background) {
-        cucumberBackground = new CucumberBackground(this, background);
-        currentStepContainer = cucumberBackground;
+    public GherkinDocument getGherkinFeature() {
+        return gherkinDocument;
     }
 
-    public void scenario(Scenario scenario) {
-        CucumberTagStatement cucumberTagStatement = new CucumberScenario(this, cucumberBackground, scenario);
-        currentStepContainer = cucumberTagStatement;
-        cucumberTagStatements.add(cucumberTagStatement);
-    }
-
-    public void scenarioOutline(ScenarioOutline scenarioOutline) {
-        CucumberScenarioOutline cucumberScenarioOutline = new CucumberScenarioOutline(this, cucumberBackground, scenarioOutline);
-        currentScenarioOutline = cucumberScenarioOutline;
-        currentStepContainer = cucumberScenarioOutline;
-        cucumberTagStatements.add(cucumberScenarioOutline);
-    }
-
-    public void examples(Examples examples) {
-        currentScenarioOutline.examples(examples);
-    }
-
-    public void step(Step step) {
-        currentStepContainer.step(step);
-    }
-
-    public Feature getGherkinFeature() {
-        return feature;
-    }
-
-    public List<CucumberTagStatement> getFeatureElements() {
-        return cucumberTagStatements;
-    }
-
-    public void setI18n(I18n i18n) {
+    public void setI18n(GherkinDialect i18n) {
         this.i18n = i18n;
     }
 
-    public I18n getI18n() {
+    public GherkinDialect getI18n() {
         return i18n;
     }
 
     public String getPath() {
         return path;
-    }
-
-    public void run(Formatter formatter, Reporter reporter, Runtime runtime) {
-        formatter.uri(getPath());
-        formatter.feature(getGherkinFeature());
-
-        for (CucumberTagStatement cucumberTagStatement : getFeatureElements()) {
-            //Run the scenario, it should handle before and after hooks
-            cucumberTagStatement.run(formatter, reporter, runtime);
-        }
-        formatter.eof();
-
     }
 
     private static class CucumberFeatureUriComparator implements Comparator<CucumberFeature> {

@@ -1,23 +1,19 @@
 package cucumber.runtime.formatter;
 
-import gherkin.formatter.Formatter;
-import gherkin.formatter.NiceAppendable;
-import gherkin.formatter.Reporter;
-import gherkin.formatter.ansi.AnsiEscapes;
-import gherkin.formatter.model.Background;
-import gherkin.formatter.model.Examples;
-import gherkin.formatter.model.Feature;
-import gherkin.formatter.model.Match;
-import gherkin.formatter.model.Result;
-import gherkin.formatter.model.Scenario;
-import gherkin.formatter.model.ScenarioOutline;
-import gherkin.formatter.model.Step;
+import cucumber.runner.EventBus;
+import cucumber.runner.EventHandler;
+import cucumber.runner.Result;
+import cucumber.runner.TestStepFinished;
+import cucumber.runner.WriteEvent;
+import cucumber.runtime.formatter.Formatter;
+import cucumber.runtime.formatter.NiceAppendable;
+import cucumber.runtime.formatter.ansi.AnsiEscapes;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-class ProgressFormatter implements Formatter, Reporter, ColorAware {
+class ProgressFormatter implements Formatter, ColorAware {
     private static final Map<String, Character> CHARS = new HashMap<String, Character>() {{
         put("passed", '.');
         put("undefined", 'U');
@@ -35,60 +31,32 @@ class ProgressFormatter implements Formatter, Reporter, ColorAware {
 
     private final NiceAppendable out;
     private boolean monochrome = false;
+    private EventHandler<TestStepFinished> stepFinishedhandler = new EventHandler<TestStepFinished>() {
+
+        @Override
+        public void receive(TestStepFinished event) {
+            if (!event.definitionMatch.isHook() || event.result.getStatus().equals(Result.FAILED)) {
+                if (!monochrome) {
+                    ANSI_ESCAPES.get(event.result.getStatus()).appendTo(out);
+                }
+                out.append(CHARS.get(event.result.getStatus()));
+                if (!monochrome) {
+                    AnsiEscapes.RESET.appendTo(out);
+                }
+            }
+        }
+
+    };
+    private EventHandler<WriteEvent> writeHandler = new EventHandler<WriteEvent>() {
+
+        @Override
+        public void receive(WriteEvent event) {
+            out.append(event.text);
+        }
+    };
 
     public ProgressFormatter(Appendable appendable) {
         out = new NiceAppendable(appendable);
-    }
-
-    @Override
-    public void uri(String uri) {
-    }
-
-    @Override
-    public void feature(Feature feature) {
-    }
-
-    @Override
-    public void background(Background background) {
-    }
-
-    @Override
-    public void scenario(Scenario scenario) {
-    }
-
-    @Override
-    public void scenarioOutline(ScenarioOutline scenarioOutline) {
-    }
-
-    @Override
-    public void examples(Examples examples) {
-    }
-
-    @Override
-    public void step(Step step) {
-    }
-
-    @Override
-    public void eof() {
-    }
-
-    @Override
-    public void syntaxError(String state, String event, List<String> legalEvents, String uri, Integer line) {
-    }
-
-    @Override
-    public void startOfScenarioLifeCycle(Scenario scenario) {
-        // NoOp
-    }
-
-    @Override
-    public void endOfScenarioLifeCycle(Scenario scenario) {
-        // NoOp
-    }
-
-    @Override
-    public void done() {
-        out.println();
     }
 
     @Override
@@ -97,52 +65,13 @@ class ProgressFormatter implements Formatter, Reporter, ColorAware {
     }
 
     @Override
-    public void result(Result result) {
-        if (!monochrome) {
-            ANSI_ESCAPES.get(result.getStatus()).appendTo(out);
-        }
-        out.append(CHARS.get(result.getStatus()));
-        if (!monochrome) {
-            AnsiEscapes.RESET.appendTo(out);
-        }
-    }
-
-    @Override
-    public void before(Match match, Result result) {
-        handleHook(match, result, "B");
-    }
-
-    @Override
-    public void after(Match match, Result result) {
-        handleHook(match, result, "A");
-    }
-
-    private void handleHook(Match match, Result result, String character) {
-        if (result.getStatus().equals(Result.FAILED)) {
-            if (!monochrome) {
-                ANSI_ESCAPES.get(result.getStatus()).appendTo(out);
-            }
-            out.append(character);
-            if (!monochrome) {
-                AnsiEscapes.RESET.appendTo(out);
-            }
-        }
-    }
-
-    @Override
-    public void match(Match match) {
-    }
-
-    @Override
-    public void embedding(String mimeType, byte[] data) {
-    }
-
-    @Override
-    public void write(String text) {
-    }
-
-    @Override
     public void setMonochrome(boolean monochrome) {
         this.monochrome = monochrome;
+    }
+
+    @Override
+    public void setEventBus(EventBus bus) {
+        bus.registerHandlerFor(TestStepFinished.class, stepFinishedhandler);
+        bus.registerHandlerFor(WriteEvent.class, writeHandler );
     }
 }

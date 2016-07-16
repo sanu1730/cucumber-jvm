@@ -1,18 +1,10 @@
 package cucumber.runtime.formatter;
 
+import cucumber.runner.EventBus;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.io.URLOutputStream;
 import cucumber.runtime.io.UTF8OutputStreamWriter;
-import gherkin.formatter.Formatter;
-import gherkin.formatter.Reporter;
-import gherkin.formatter.model.Background;
-import gherkin.formatter.model.Examples;
-import gherkin.formatter.model.Feature;
-import gherkin.formatter.model.Match;
-import gherkin.formatter.model.Result;
-import gherkin.formatter.model.Scenario;
-import gherkin.formatter.model.ScenarioOutline;
-import gherkin.formatter.model.Step;
+import cucumber.runtime.formatter.Formatter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -37,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-class JUnitFormatter implements Formatter, Reporter, StrictAware {
+class JUnitFormatter implements Formatter, StrictAware {
     private final Writer out;
     private final Document doc;
     private final Element rootElement;
@@ -58,6 +50,10 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
     }
 
     @Override
+    public void setEventBus(EventBus bus) {
+    }
+
+/*    @Override
     public void feature(Feature feature) {
         TestCase.feature = feature;
         TestCase.previousScenarioOutlineName = "";
@@ -93,31 +89,31 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
     @Override
     public void step(Step step) {
         if (testCase != null) testCase.steps.add(step);
-    }
+    }*/
 
-    @Override
-    public void done() {
-        try {
-            // set up a transformer
-            rootElement.setAttribute("name", JUnitFormatter.class.getName());
-            rootElement.setAttribute("failures", String.valueOf(rootElement.getElementsByTagName("failure").getLength()));
-            rootElement.setAttribute("skipped", String.valueOf(rootElement.getElementsByTagName("skipped").getLength()));
-            rootElement.setAttribute("time", sumTimes(rootElement.getElementsByTagName("testcase")));
-            if (rootElement.getElementsByTagName("testcase").getLength() == 0) {
-                addDummyTestCase(); // to avoid failed Jenkins jobs
-            }
-            TransformerFactory transfac = TransformerFactory.newInstance();
-            Transformer trans = transfac.newTransformer();
-            trans.setOutputProperty(OutputKeys.INDENT, "yes");
-            StreamResult result = new StreamResult(out);
-            DOMSource source = new DOMSource(doc);
-            trans.transform(source, result);
-        } catch (TransformerException e) {
-            throw new CucumberException("Error while transforming.", e);
-        }
-    }
+//    @Override
+//    public void done() {
+//        try {
+//            // set up a transformer
+//            rootElement.setAttribute("name", JUnitFormatter.class.getName());
+//            rootElement.setAttribute("failures", String.valueOf(rootElement.getElementsByTagName("failure").getLength()));
+//            rootElement.setAttribute("skipped", String.valueOf(rootElement.getElementsByTagName("skipped").getLength()));
+//            rootElement.setAttribute("time", sumTimes(rootElement.getElementsByTagName("testcase")));
+//            if (rootElement.getElementsByTagName("testcase").getLength() == 0) {
+//                addDummyTestCase(); // to avoid failed Jenkins jobs
+//            }
+//            TransformerFactory transfac = TransformerFactory.newInstance();
+//            Transformer trans = transfac.newTransformer();
+//            trans.setOutputProperty(OutputKeys.INDENT, "yes");
+//            StreamResult result = new StreamResult(out);
+//            DOMSource source = new DOMSource(doc);
+//            trans.transform(source, result);
+//        } catch (TransformerException e) {
+//            throw new CucumberException("Error while transforming.", e);
+//        }
+//    }
 
-    @Override
+/*    @Override
     public void startOfScenarioLifeCycle(Scenario scenario) {
         // NoOp
     }
@@ -127,7 +123,7 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
         if (testCase != null && testCase.steps.isEmpty()) {
             testCase.handleEmptyTestCase(doc, root);
         }
-    }
+    }*/
 
     private void addDummyTestCase() {
         Element dummy = doc.createElement("testcase");
@@ -139,7 +135,7 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
         dummy.appendChild(skipped);
     }
 
-    @Override
+/*    @Override
     public void result(Result result) {
         testCase.results.add(result);
         testCase.updateElement(doc, root);
@@ -162,7 +158,7 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
     private void handleHook(Result result) {
         testCase.hookResults.add(result);
         testCase.updateElement(doc, root);
-    }
+    }*/
 
     private String sumTimes(NodeList testCaseNodes) {
         double totalDurationSecondsForAllTimes = 0.0d;
@@ -190,7 +186,7 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
         element.setAttribute(attribute, String.valueOf(++value));
     }
 
-    @Override
+/*    @Override
     public void scenarioOutline(ScenarioOutline scenarioOutline) {
         testCase = null;
     }
@@ -209,22 +205,10 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
 
     @Override
     public void write(String text) {
-    }
-
-    @Override
-    public void uri(String uri) {
-    }
+    }*/
 
     @Override
     public void close() {
-    }
-
-    @Override
-    public void eof() {
-    }
-
-    @Override
-    public void syntaxError(String state, String event, List<String> legalEvents, String uri, Integer line) {
     }
 
     @Override
@@ -239,19 +223,19 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
             NUMBER_FORMAT.applyPattern("0.######");
         }
 
-        private TestCase(Scenario scenario) {
-            this.scenario = scenario;
-        }
+//        private TestCase(Scenario scenario) {
+//            this.scenario = scenario;
+//        }
 
         private TestCase() {
         }
 
-        Scenario scenario;
+/*        Scenario scenario;
         static Feature feature;
         static String previousScenarioOutlineName;
-        static int exampleNumber;
+        static int exampleNumber;*/
         static boolean treatSkippedAsFailure = false;
-        final List<Step> steps = new ArrayList<Step>();
+/*        final List<Step> steps = new ArrayList<Step>();
         final List<Result> results = new ArrayList<Result>();
         final List<Result> hookResults = new ArrayList<Result>();
 
@@ -371,7 +355,7 @@ class JUnitFormatter implements Formatter, Reporter, StrictAware {
             Element child = doc.createElement(elementType);
             child.appendChild(doc.createCDATASection(sb.toString()));
             return child;
-        }
+        }*/
 
     }
 

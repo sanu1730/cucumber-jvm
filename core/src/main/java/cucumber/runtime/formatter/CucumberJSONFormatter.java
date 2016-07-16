@@ -1,38 +1,20 @@
 package cucumber.runtime.formatter;
 
-import gherkin.formatter.JSONFormatter;
-import gherkin.formatter.model.Examples;
-import gherkin.formatter.model.Scenario;
-import gherkin.formatter.model.ScenarioOutline;
-import gherkin.formatter.model.Step;
+import cucumber.runner.EventBus;
 
-public class CucumberJSONFormatter extends JSONFormatter {
-    private boolean inScenarioOutline = false;
+public class CucumberJSONFormatter implements Formatter {
 
     public CucumberJSONFormatter(Appendable out) {
-        super(out);
     }
 
     @Override
-    public void scenarioOutline(ScenarioOutline scenarioOutline) {
-        inScenarioOutline = true;
+    public void setEventBus(EventBus bus) {
     }
 
     @Override
-    public void examples(Examples examples) {
-        // NoOp
+    public void close() {
+        // TODO Auto-generated method stub
+
     }
 
-    @Override
-    public void startOfScenarioLifeCycle(Scenario scenario) {
-        inScenarioOutline = false;
-        super.startOfScenarioLifeCycle(scenario);
-    }
-
-    @Override
-    public void step(Step step) {
-        if (!inScenarioOutline) {
-            super.step(step);
-        }
-    }
 }

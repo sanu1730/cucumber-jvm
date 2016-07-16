@@ -1,21 +1,17 @@
 package cucumber.runtime;
 
 import cucumber.runtime.snippets.FunctionNameGenerator;
-import gherkin.I18n;
-import gherkin.formatter.model.Step;
+import gherkin.GherkinDialect;
+import gherkin.pickles.PickleStep;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.util.Arrays.asList;
-
 public class UndefinedStepsTracker {
-    private final List<Step> undefinedSteps = new ArrayList<Step>();
-
-    private String lastGivenWhenThenStepKeyword;
+    private final List<SimpleEntry<PickleStep, String>> undefinedSteps = new ArrayList<SimpleEntry<PickleStep, String>>();
 
     public void reset() {
-        lastGivenWhenThenStepKeyword = null;
     }
 
     /**
@@ -27,9 +23,9 @@ public class UndefinedStepsTracker {
     public List<String> getSnippets(Iterable<? extends Backend> backends, FunctionNameGenerator functionNameGenerator) {
         // TODO: Convert "And" and "But" to the Given/When/Then keyword above in the Gherkin source.
         List<String> snippets = new ArrayList<String>();
-        for (Step step : undefinedSteps) {
+        for (SimpleEntry<PickleStep, String> entry : undefinedSteps) {
             for (Backend backend : backends) {
-                String snippet = backend.getSnippet(step, functionNameGenerator);
+                String snippet = backend.getSnippet(entry.getKey(), entry.getValue(), functionNameGenerator);
                 if (snippet == null) {
                     throw new NullPointerException("null snippet");
                 }
@@ -41,41 +37,24 @@ public class UndefinedStepsTracker {
         return snippets;
     }
 
-    public void storeStepKeyword(Step step, I18n i18n) {
-        String keyword = step.getKeyword();
-        if (isGivenWhenThenKeyword(keyword, i18n)) {
-            lastGivenWhenThenStepKeyword = keyword;
-        }
-        if (lastGivenWhenThenStepKeyword == null) {
-            lastGivenWhenThenStepKeyword = keyword;
-        }
+    public void storeStepKeyword(PickleStep step, GherkinDialect i18n) {
     }
 
-    public void addUndefinedStep(Step step, I18n i18n) {
-        undefinedSteps.add(givenWhenThenStep(step, i18n));
+    public void addUndefinedStep(PickleStep step, GherkinDialect i18n) {
+        undefinedSteps.add(new SimpleEntry<PickleStep, String>(step, givenWhenThenKeyword(step, i18n)));
     }
 
-    private boolean isGivenWhenThenKeyword(String keyword, I18n i18n) {
-        for (String gwts : asList("given", "when", "then")) {
-            List<String> keywords = i18n.keywords(gwts);
-            if (keywords.contains(keyword) && !"* ".equals(keyword)) {
-                return true;
+    private String givenWhenThenKeyword(PickleStep step, GherkinDialect i18n) {
+        return getFirstCodeKeyword(i18n);
+    }
+
+    private String getFirstCodeKeyword(GherkinDialect i18n) {
+        for (String keyword : i18n.getStepKeywords()) {
+            if (!keyword.equals("* ")) {
+                return keyword.replaceAll("[\\s',!]", "");
             }
         }
-        return false;
-    }
-
-    private Step givenWhenThenStep(Step step, I18n i18n) {
-        if (isGivenWhenThenKeyword(step.getKeyword(), i18n)) {
-            return step;
-        } else {
-            if (lastGivenWhenThenStepKeyword == null) {
-                List<String> givenKeywords = new ArrayList<String>(i18n.keywords("given"));
-                givenKeywords.remove("* ");
-                lastGivenWhenThenStepKeyword = givenKeywords.get(0);
-            }
-            return new Step(step.getComments(), lastGivenWhenThenStepKeyword, step.getName(), step.getLine(), step.getRows(), step.getDocString());
-        }
+        return null;
     }
 
     public boolean hasUndefinedSteps() {
