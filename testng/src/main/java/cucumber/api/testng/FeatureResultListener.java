@@ -1,52 +1,39 @@
 package cucumber.api.testng;
 
 import cucumber.runtime.CucumberException;
-import gherkin.formatter.Reporter;
-import gherkin.formatter.model.Match;
-import gherkin.formatter.model.Result;
+import cucumber.runtime.formatter.Formatter;
+import cucumber.runner.EventBus;
+import cucumber.runner.EventHandler;
+import cucumber.runner.Result;
+import cucumber.runner.TestStepFinished;
 
-public class FeatureResultListener implements Reporter {
+public class FeatureResultListener implements Formatter {
     static final String PENDING_STATUS = "pending";
     static final String UNDEFINED_MESSAGE = "There are undefined steps";
     static final String PENDING_MESSAGE = "There are pending steps";
-    private Reporter reporter;
     private boolean strict;
     private Throwable error = null;
+    private final EventHandler<TestStepFinished> testStepFinishedHandler = new EventHandler<TestStepFinished>() {
+        @Override
+        public void receive(TestStepFinished event) {
+            collectError(event.result);
+        }
+    };
 
-    public FeatureResultListener(Reporter reporter, boolean strict) {
-        this.reporter = reporter;
+    public FeatureResultListener(boolean strict) {
         this.strict = strict;
     }
 
     @Override
-    public void after(Match match, Result result) {
-        collectError(result);
-        reporter.after(match, result);
+    public void setEventBus(EventBus bus) {
+        bus.registerHandlerFor(TestStepFinished.class, testStepFinishedHandler);
     }
 
     @Override
-    public void before(Match match, Result result) {
-        collectError(result);
-        reporter.before(match, result);
+    public void close() {
     }
 
-    @Override
-    public void embedding(String mimeType, byte[] data) {
-        reporter.embedding(mimeType, data);
-    }
-
-    @Override
-    public void match(Match match) {
-        reporter.match(match);
-    }
-
-    @Override
-    public void result(Result result) {
-        collectError(result);
-        reporter.result(result);
-    }
-
-    private void collectError(Result result) {
+    void collectError(Result result) {
         if (result.getStatus().equals(Result.FAILED)) {
             if (error == null || isUndefinedError(error) || isPendingError(error)) {
                 error = result.getError();
@@ -70,11 +57,6 @@ public class FeatureResultListener implements Reporter {
         return (error instanceof CucumberException) && error.getMessage().equals(UNDEFINED_MESSAGE);
     }
 
-    @Override
-    public void write(String text) {
-        reporter.write(text);
-    }
-
     public boolean isPassed() {
         return error == null;
     }
@@ -86,5 +68,4 @@ public class FeatureResultListener implements Reporter {
     public void startFeature() {
         error = null;
     }
-
 }

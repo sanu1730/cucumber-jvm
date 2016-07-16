@@ -1,12 +1,9 @@
 package cucumber.api.testng;
 
-import gherkin.formatter.Reporter;
-import gherkin.formatter.model.Match;
-import gherkin.formatter.model.Result;
+import cucumber.runner.Result;
 import org.testng.annotations.Test;
 
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
@@ -17,9 +14,10 @@ public class FeatureResultListenerTest {
 
     @Test
     public void should_be_passed_for_passed_result() throws Exception {
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
+        FeatureResultListener resultListener = new FeatureResultListener(false);
 
-        resultListener.result(mockPassedResult());
+        resultListener.collectError(mockPassedResult());
+        resultListener.close();
 
         assertTrue(resultListener.isPassed());
         assertNull(resultListener.getFirstError());
@@ -28,9 +26,10 @@ public class FeatureResultListenerTest {
     @Test
     public void should_not_be_passed_for_failed_result() throws Exception {
         Result result = mockFailedResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
+        FeatureResultListener resultListener = new FeatureResultListener(false);
 
-        resultListener.result(result);
+        resultListener.collectError(result);
+        resultListener.close();
 
         assertFalse(resultListener.isPassed());
         assertEquals(resultListener.getFirstError(), result.getError());
@@ -38,9 +37,10 @@ public class FeatureResultListenerTest {
 
     @Test
     public void should_be_passed_for_undefined_result() throws Exception {
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
+        FeatureResultListener resultListener = new FeatureResultListener(false);
 
-        resultListener.result(Result.UNDEFINED);
+        resultListener.collectError(Result.UNDEFINED);
+        resultListener.close();
 
         assertTrue(resultListener.isPassed());
         assertNull(resultListener.getFirstError());
@@ -48,9 +48,10 @@ public class FeatureResultListenerTest {
 
     @Test
     public void should_not_be_passed_for_undefined_result_in_strict_mode() throws Exception {
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), true);
+        FeatureResultListener resultListener = new FeatureResultListener(true);
 
-        resultListener.result(Result.UNDEFINED);
+        resultListener.collectError(Result.UNDEFINED);
+        resultListener.close();
 
         assertFalse(resultListener.isPassed());
         assertEquals(resultListener.getFirstError().getMessage(), FeatureResultListener.UNDEFINED_MESSAGE);
@@ -58,9 +59,10 @@ public class FeatureResultListenerTest {
 
     @Test
     public void should_be_passed_for_pending_result() throws Exception {
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
+        FeatureResultListener resultListener = new FeatureResultListener(false);
 
-        resultListener.result(mockPendingResult());
+        resultListener.collectError(mockPendingResult());
+        resultListener.close();
 
         assertTrue(resultListener.isPassed());
         assertNull(resultListener.getFirstError());
@@ -68,9 +70,10 @@ public class FeatureResultListenerTest {
 
     @Test
     public void should_not_be_passed_for_pending_result_in_strict_mode() throws Exception {
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), true);
+        FeatureResultListener resultListener = new FeatureResultListener(true);
 
-        resultListener.result(mockPendingResult());
+        resultListener.collectError(mockPendingResult());
+        resultListener.close();
 
         assertFalse(resultListener.isPassed());
         assertEquals(resultListener.getFirstError().getMessage(), FeatureResultListener.PENDING_MESSAGE);
@@ -79,12 +82,13 @@ public class FeatureResultListenerTest {
     @Test
     public void should_collect_first_error() throws Exception {
         Result result = mockFailedResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
+        FeatureResultListener resultListener = new FeatureResultListener(false);
 
-        resultListener.result(result);
-        resultListener.result(mockFailedResult());
-        resultListener.result(mockPendingResult());
-        resultListener.result(Result.UNDEFINED);
+        resultListener.collectError(result);
+        resultListener.collectError(mockFailedResult());
+        resultListener.collectError(mockPendingResult());
+        resultListener.collectError(Result.UNDEFINED);
+        resultListener.close();
 
         assertEquals(resultListener.getFirstError(), result.getError());
     }
@@ -92,10 +96,11 @@ public class FeatureResultListenerTest {
     @Test
     public void should_collect_error_after_undefined() throws Exception {
         Result result = mockFailedResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), true);
+        FeatureResultListener resultListener = new FeatureResultListener(true);
 
-        resultListener.result(Result.UNDEFINED);
-        resultListener.result(result);
+        resultListener.collectError(Result.UNDEFINED);
+        resultListener.collectError(result);
+        resultListener.close();
 
         assertEquals(resultListener.getFirstError(), result.getError());
     }
@@ -103,10 +108,11 @@ public class FeatureResultListenerTest {
     @Test
     public void should_collect_error_after_pending() throws Exception {
         Result result = mockFailedResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), true);
+        FeatureResultListener resultListener = new FeatureResultListener(true);
 
-        resultListener.result(mockPendingResult());
-        resultListener.result(result);
+        resultListener.collectError(mockPendingResult());
+        resultListener.collectError(result);
+        resultListener.close();
 
         assertEquals(resultListener.getFirstError(), result.getError());
     }
@@ -114,70 +120,25 @@ public class FeatureResultListenerTest {
     @Test
     public void should_collect_pending_after_undefined() throws Exception {
         Result result = mockPendingResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), true);
+        FeatureResultListener resultListener = new FeatureResultListener(true);
 
-        resultListener.result(Result.UNDEFINED);
-        resultListener.result(result);
+        resultListener.collectError(Result.UNDEFINED);
+        resultListener.collectError(result);
+        resultListener.close();
 
         assertEquals(resultListener.getFirstError().getMessage(), FeatureResultListener.PENDING_MESSAGE);
     }
 
     @Test
-    public void should_not_be_passed_for_failed_before_hook() throws Exception {
-        Result result = mockFailedResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
-
-        resultListener.before(mock(Match.class), result);
-
-        assertFalse(resultListener.isPassed());
-        assertEquals(resultListener.getFirstError(), result.getError());
-    }
-
-    @Test
-    public void should_not_be_passed_for_failed_after_hook() throws Exception {
-        Result result = mockFailedResult();
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
-
-        resultListener.after(mock(Match.class), result);
-
-        assertFalse(resultListener.isPassed());
-        assertEquals(resultListener.getFirstError(), result.getError());
-    }
-
-    @Test
     public void should_reset_errors() throws Exception {
-        FeatureResultListener resultListener = new FeatureResultListener(mock(Reporter.class), false);
-        resultListener.result(mockFailedResult());
+        FeatureResultListener resultListener = new FeatureResultListener(false);
+        resultListener.collectError(mockFailedResult());
 
         resultListener.startFeature();
+        resultListener.close();
 
         assertTrue(resultListener.isPassed());
         assertNull(resultListener.getFirstError());
-    }
-
-    @Test
-    public void should_forward_calls_to_reporter_interface_methods() throws Exception {
-        Match match = mock(Match.class);
-        Result result = mockPassedResult();
-        String mimeType = "mimeType";
-        byte data[] = new byte[] {1};
-        String text = "text";
-        Reporter reporter = mock(Reporter.class);
-        FeatureResultListener resultListener = new FeatureResultListener(reporter, false);
-
-        resultListener.before(match, result);
-        resultListener.match(match);
-        resultListener.embedding(mimeType, data);
-        resultListener.write(text);
-        resultListener.result(result);
-        resultListener.after(match, result);
-
-        verify(reporter).before(match, result);
-        verify(reporter).match(match);
-        verify(reporter).embedding(mimeType, data);
-        verify(reporter).write(text);
-        verify(reporter).result(result);
-        verify(reporter).after(match, result);
     }
 
     private Result mockPassedResult() {
