@@ -2,8 +2,8 @@ package cucumber.api.scala
 
 import _root_.org.junit.{Test, Assert}
 import Assert._
-import _root_.gherkin.I18n
-import _root_.gherkin.formatter.model.Tag
+import _root_.gherkin.GherkinDialectProvider
+import _root_.gherkin.pickles.PickleTag
 import collection.JavaConverters._
 import cucumber.api.Scenario
 
@@ -36,7 +36,7 @@ class ScalaDslTest {
 
     assertEquals(1, Befores.beforeHooks.size)
     val hook = Befores.beforeHooks.head
-    assertTrue(hook.matches(List[Tag]().asJava))
+    assertTrue(hook.matches(List[PickleTag]().asJava))
     hook.execute(StubScenario)
     assertEquals(Int.MaxValue, hook.getOrder)
     assertEquals(StubScenario, actualScenario)
@@ -53,9 +53,9 @@ class ScalaDslTest {
     assertEquals(1, Befores.beforeHooks.size)
 
     val hook = Befores.beforeHooks.head
-    assertFalse(hook.matches(List[Tag]().asJava))
-    assertTrue(hook.matches(List(new Tag("@bar", 0), new Tag("@zap", 0)).asJava))
-    assertFalse(hook.matches(List(new Tag("@bar", 1)).asJava))
+    assertFalse(hook.matches(List[PickleTag]().asJava))
+    assertTrue(hook.matches(List(new PickleTag(null, "@bar"), new PickleTag(null, "@zap")).asJava))
+    assertFalse(hook.matches(List(new PickleTag(null, "@bar")).asJava))
 
     hook.execute(StubScenario)
     assertEquals(StubScenario, actualScenario)
@@ -95,7 +95,7 @@ class ScalaDslTest {
 
     assertEquals(1, Afters.afterHooks.size)
     val hook = Afters.afterHooks.head
-    assertTrue(hook.matches(List[Tag]().asJava))
+    assertTrue(hook.matches(List[PickleTag]().asJava))
     hook.execute(StubScenario)
     assertEquals(StubScenario, actualScenario)
   }
@@ -111,9 +111,9 @@ class ScalaDslTest {
     assertEquals(1, Afters.afterHooks.size)
 
     val hook = Afters.afterHooks.head
-    assertFalse(hook.matches(List[Tag]().asJava))
-    assertTrue(hook.matches(List(new Tag("@bar", 0), new Tag("@zap", 0)).asJava))
-    assertFalse(hook.matches(List(new Tag("@bar", 1)).asJava))
+    assertFalse(hook.matches(List[PickleTag]().asJava))
+    assertTrue(hook.matches(List(new PickleTag(null, "@bar"), new PickleTag(null, "@zap")).asJava))
+    assertFalse(hook.matches(List(new PickleTag(null, "@bar")).asJava))
 
     hook.execute(StubScenario)
     assertEquals(StubScenario, actualScenario)
@@ -133,7 +133,7 @@ class ScalaDslTest {
     val step = Dummy.stepDefinitions.head
     assertEquals("ScalaDslTest.scala:127", step.getLocation(true)) // be careful with formatting or this test will break
     assertEquals("x", step.getPattern)
-    step.execute(new I18n("en"), Array())
+    step.execute(new GherkinDialectProvider("en").getDefaultDialect(), Array())
     assertTrue(called)
   }
 
@@ -151,7 +151,7 @@ class ScalaDslTest {
 
     assertEquals(1, Dummy.stepDefinitions.size)
     val step = Dummy.stepDefinitions(0)
-    step.execute(new I18n("en"), Array(new java.lang.Integer(5), "green"))
+    step.execute(new GherkinDialectProvider("en").getDefaultDialect(), Array(new java.lang.Integer(5), "green"))
     assertEquals(5, thenumber)
     assertEquals("green", thecolour)
   }
