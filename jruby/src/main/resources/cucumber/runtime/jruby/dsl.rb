@@ -76,7 +76,7 @@ module Cucumber
             match.captures.map do |val|
               n += 1
               start = match.offset(n)[0]
-              Java::GherkinFormatter::Argument.new(start, val)
+              Java::CucumberRuntime::Argument.new(start, val)
             end
           else
             nil

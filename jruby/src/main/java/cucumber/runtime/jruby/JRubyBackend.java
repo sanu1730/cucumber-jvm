@@ -12,10 +12,10 @@ import cucumber.runtime.io.Resource;
 import cucumber.runtime.io.ResourceLoader;
 import cucumber.runtime.snippets.FunctionNameGenerator;
 import cucumber.runtime.snippets.SnippetGenerator;
-import gherkin.I18n;
-import gherkin.formatter.model.DataTableRow;
-import gherkin.formatter.model.DocString;
-import gherkin.formatter.model.Step;
+import gherkin.GherkinDialect;
+import gherkin.pickles.PickleRow;
+import gherkin.pickles.PickleString;
+import gherkin.pickles.PickleStep;
 import org.jruby.CompatVersion;
 import org.jruby.Ruby;
 import org.jruby.RubyModule;
@@ -126,8 +126,8 @@ public class JRubyBackend implements Backend {
     }
 
     @Override
-    public String getSnippet(Step step, FunctionNameGenerator functionNameGenerator) {
-        return snippetGenerator.getSnippet(step, functionNameGenerator);
+    public String getSnippet(PickleStep step, String keyword, FunctionNameGenerator functionNameGenerator) {
+        return snippetGenerator.getSnippet(step, keyword, functionNameGenerator);
     }
 
     public void registerStepdef(RubyObject stepdefRunner) {
@@ -150,10 +150,10 @@ public class JRubyBackend implements Backend {
         throw new PendingException(reason);
     }
 
-    public void runStep(String featurePath, I18n i18n, String stepKeyword, String stepName, int line, DataTable dataTable, DocString docString) throws Throwable {
-        List<DataTableRow> dataTableRows = null;
+    public void runStep(String featurePath, GherkinDialect i18n, String stepKeyword, String stepName, int line, DataTable dataTable, PickleString docString) throws Throwable {
+        List<PickleRow> dataTableRows = null;
         if (dataTable != null) {
-            dataTableRows = dataTable.getGherkinRows();
+            dataTableRows = dataTable.getPickleRows();
         }
 
         unreportedStepExecutor.runUnreportedStep(featurePath, i18n, stepKeyword, stepName, line, dataTableRows, docString);
@@ -166,7 +166,7 @@ public class JRubyBackend implements Backend {
         hookRunner.callMethod("execute", jrubyArgs);
     }
 
-    void executeStepdef(RubyObject stepdef, I18n i18n, Object[] args) {
+    void executeStepdef(RubyObject stepdef, GherkinDialect i18n, Object[] args) {
         ArrayList<IRubyObject> jrubyArgs = new ArrayList<IRubyObject>();
 
         // jrubyWorld.@__gherkin_i18n = i18n
