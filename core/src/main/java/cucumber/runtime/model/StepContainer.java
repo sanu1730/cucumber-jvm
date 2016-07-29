@@ -1,6 +1,7 @@
 package cucumber.runtime.model;
 
 import cucumber.runtime.Runtime;
+import cucumber.runtime.StepImpl;
 import gherkin.formatter.Formatter;
 import gherkin.formatter.Reporter;
 import gherkin.formatter.model.BasicStatement;
@@ -31,6 +32,17 @@ public class StepContainer {
         statement.replay(formatter);
         for (Step step : getSteps()) {
             formatter.step(step);
+        }
+    }
+
+    void runSteps(Formatter formatter, Reporter reporter, Runtime runtime) {
+        statement.replay(formatter);
+        for (Step step : getSteps()) {
+            cucumber.api.Step stepResult = new StepImpl(reporter, step);
+            runtime.runBeforeStepHooks(reporter, stepResult);
+            formatter.step(step);
+            runStep(step, reporter, runtime);
+            runtime.runAfterStepHooks(reporter, stepResult);
         }
     }
 

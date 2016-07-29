@@ -1,6 +1,7 @@
 package cucumber.runtime.java;
 
 import cucumber.api.Scenario;
+import cucumber.api.Step;
 import cucumber.api.java.ObjectFactory;
 import cucumber.runtime.CucumberException;
 import cucumber.runtime.HookDefinition;
@@ -21,13 +22,16 @@ class JavaHookDefinition implements HookDefinition {
     private final TagExpression tagExpression;
     private final int order;
     private final ObjectFactory objectFactory;
+    private final boolean reportingEnabled;
 
-    public JavaHookDefinition(Method method, String[] tagExpressions, int order, long timeoutMillis, ObjectFactory objectFactory) {
+    public JavaHookDefinition(Method method, String[] tagExpressions, int order, long timeoutMillis, ObjectFactory objectFactory,
+                              boolean reportingEnabled) {
         this.method = method;
         this.timeoutMillis = timeoutMillis;
         this.tagExpression = new TagExpression(asList(tagExpressions));
         this.order = order;
         this.objectFactory = objectFactory;
+        this.reportingEnabled = reportingEnabled;
     }
 
     Method getMethod() {
@@ -73,5 +77,30 @@ class JavaHookDefinition implements HookDefinition {
     @Override
     public boolean isScenarioScoped() {
         return false;
+    }
+
+    @Override
+    public boolean reportingEnabled() {
+        return reportingEnabled;
+    }
+
+    @Override
+    public void executeStepHook(Step step) throws Throwable {
+        Object[] args;
+        switch (method.getParameterTypes().length) {
+            case 0:
+                args = new Object[0];
+                break;
+            case 1:
+                if (!Step.class.equals(method.getParameterTypes()[0])) {
+                    throw new CucumberException("When a hook declares an argument it must be of type " + Step.class.getName() + ". " + method.toString());
+                }
+                args = new Object[]{step};
+                break;
+            default:
+                throw new CucumberException("Hooks must declare 0 or 1 arguments. " + method.toString());
+        }
+
+        Utils.invoke(objectFactory.getInstance(method.getDeclaringClass()), method, timeoutMillis, args);
     }
 }

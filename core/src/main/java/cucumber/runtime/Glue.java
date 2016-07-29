@@ -21,6 +21,14 @@ public interface Glue {
 
     List<HookDefinition> getAfterHooks();
 
+    void addBeforeStepHook(HookDefinition hookDefinition);
+
+    void addAfterStepHook(HookDefinition hookDefinition);
+
+    List<HookDefinition> getBeforeStepHooks();
+
+    List<HookDefinition> getAfterStepHooks();
+
     StepDefinitionMatch stepDefinitionMatch(String featurePath, Step step, I18n i18n);
 
     void reportStepDefinitions(StepDefinitionReporter stepDefinitionReporter);

@@ -1,6 +1,7 @@
 package cucumber.runtime.java;
 
 import cucumber.api.Scenario;
+import cucumber.api.Step;
 import cucumber.api.java8.HookBody;
 import cucumber.api.java8.HookNoArgsBody;
 import cucumber.runtime.HookDefinition;
@@ -70,6 +71,14 @@ public class Java8HookDefinition implements HookDefinition {
 
     @Override
     public boolean isScenarioScoped() {
+        return true;
+    }
+
+    @Override
+    public void executeStepHook(Step step) throws Throwable {throw new UnsupportedOperationException();}
+
+    @Override
+    public boolean reportingEnabled() {
         return true;
     }
 }

@@ -1,6 +1,8 @@
 package cucumber.runtime.rhino;
 
 import static java.util.Arrays.asList;
+
+import cucumber.api.Step;
 import gherkin.TagExpression;
 import gherkin.formatter.model.Tag;
 
@@ -71,5 +73,13 @@ public class RhinoHookDefinition implements HookDefinition {
     @Override
     public boolean isScenarioScoped() {
         return false;
+    }
+
+    @Override
+    public void executeStepHook(Step step) throws Throwable {throw new UnsupportedOperationException();}
+
+    @Override
+    public boolean reportingEnabled() {
+        return true;
     }
 }

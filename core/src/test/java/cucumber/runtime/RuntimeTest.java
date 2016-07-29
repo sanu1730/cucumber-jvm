@@ -274,8 +274,8 @@ public class RuntimeTest {
         runtime.printStats(new PrintStream(baos));
 
         assertThat(baos.toString(), containsString(String.format("" +
-                "1 Scenarios (1 pending)%n" +
-                "1 Steps (1 pending)%n")));
+            "1 Scenarios (1 pending)%n" +
+            "1 Steps (1 pending)%n")));
     }
 
     @Test
@@ -371,11 +371,11 @@ public class RuntimeTest {
     @Test
     public void should_make_scenario_name_available_to_hooks() throws Throwable {
         CucumberFeature feature = TestHelper.feature("path/test.feature",
-                "Feature: feature name\n" +
-                        "  Scenario: scenario name\n" +
-                        "    Given first step\n" +
-                        "    When second step\n" +
-                        "    Then third step\n");
+            "Feature: feature name\n" +
+                "  Scenario: scenario name\n" +
+                "    Given first step\n" +
+                "    When second step\n" +
+                "    Then third step\n");
         HookDefinition beforeHook = mock(HookDefinition.class);
         when(beforeHook.matches(anyCollectionOf(Tag.class))).thenReturn(true);
 
@@ -434,9 +434,9 @@ public class RuntimeTest {
                 "    result\n" +
                 "  scenario\n" +
                 "    step\n" +
-                "    step\n" +
                 "    match\n" +
                 "    result\n" +
+                "    step\n" +
                 "    match\n" +
                 "    result\n" +
                 "  endOfScenarioLifeCycle\n" +
@@ -492,9 +492,9 @@ public class RuntimeTest {
                 "    result\n" +
                 "  scenario\n" +
                 "    step\n" +
-                "    step\n" +
                 "    match\n" +
                 "    result\n" +
+                "    step\n" +
                 "    match\n" +
                 "    result\n" +
                 "  endOfScenarioLifeCycle\n" +
@@ -505,9 +505,9 @@ public class RuntimeTest {
                 "    result\n" +
                 "  scenario\n" +
                 "    step\n" +
-                "    step\n" +
                 "    match\n" +
                 "    result\n" +
+                "    step\n" +
                 "    match\n" +
                 "    result\n" +
                 "  endOfScenarioLifeCycle\n" +
@@ -519,9 +519,9 @@ public class RuntimeTest {
                 "    result\n" +
                 "  scenario\n" +
                 "    step\n" +
-                "    step\n" +
                 "    match\n" +
                 "    result\n" +
+                "    step\n" +
                 "    match\n" +
                 "    result\n" +
                 "  endOfScenarioLifeCycle\n" +

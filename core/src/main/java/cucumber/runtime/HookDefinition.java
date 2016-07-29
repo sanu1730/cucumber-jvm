@@ -1,6 +1,7 @@
 package cucumber.runtime;
 
 import cucumber.api.Scenario;
+import cucumber.api.Step;
 import gherkin.formatter.model.Tag;
 
 import java.util.Collection;
@@ -16,6 +17,8 @@ public interface HookDefinition {
 
     void execute(Scenario scenario) throws Throwable;
 
+    void executeStepHook(Step step) throws Throwable;
+
     boolean matches(Collection<Tag> tags);
 
     int getOrder();
@@ -24,4 +27,6 @@ public interface HookDefinition {
      * @return true if this instance is scoped to a single scenario, or false if it can be reused across scenarios.
      */
     boolean isScenarioScoped();
+
+    boolean reportingEnabled();
 }

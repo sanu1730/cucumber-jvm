@@ -161,6 +161,7 @@ public class TestHelper {
     private static void mockHook(SimpleEntry<String, Result> hookEntry, List<HookDefinition> beforeHooks,
                                  List<HookDefinition> afterHooks) throws Throwable {
         HookDefinition hook = mock(HookDefinition.class);
+        when(hook.reportingEnabled()).thenReturn(true);
         when(hook.matches(anyCollectionOf(Tag.class))).thenReturn(true);
         if (hookEntry.getValue().getStatus().equals("failed")) {
             doThrow(hookEntry.getValue().getError()).when(hook).execute((cucumber.api.Scenario) any());

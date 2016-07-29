@@ -1,6 +1,7 @@
 package cucumber.runtime.groovy;
 
 import cucumber.api.Scenario;
+import cucumber.api.Step;
 import cucumber.runtime.HookDefinition;
 import cucumber.runtime.Timeout;
 import gherkin.TagExpression;
@@ -62,6 +63,14 @@ public class GroovyHookDefinition implements HookDefinition {
     @Override
     public boolean isScenarioScoped() {
         return false;
+    }
+
+    @Override
+    public void executeStepHook(Step step) throws Throwable {throw new UnsupportedOperationException();}
+
+    @Override
+    public boolean reportingEnabled() {
+        return true;
     }
 }
 

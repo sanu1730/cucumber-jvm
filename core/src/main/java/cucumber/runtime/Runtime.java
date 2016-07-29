@@ -206,6 +206,48 @@ public class Runtime implements UnreportedStepExecutor {
         runHooks(glue.getAfterHooks(), reporter, tags, false);
     }
 
+    public void runBeforeStepHooks(Reporter reporter, cucumber.api.Step stepResult) {
+        runStepHooks(glue.getBeforeStepHooks(), reporter, true, stepResult);
+    }
+
+    public void runAfterStepHooks(Reporter reporter, cucumber.api.Step stepResult) {
+        runStepHooks(glue.getAfterStepHooks(), reporter, false, stepResult);
+    }
+
+    private void runStepHooks(List<HookDefinition> hooks, Reporter reporter, boolean isBefore, cucumber.api.Step stepResult) {
+        if (!runtimeOptions.isDryRun()) {
+            for (HookDefinition hook : hooks) {
+                runStepHook(hook, reporter, isBefore, stepResult);
+            }
+        }
+    }
+
+    private void runStepHook(HookDefinition hook, Reporter reporter, boolean isBefore, cucumber.api.Step stepResult) {
+        String status = Result.PASSED;
+        Throwable error = null;
+        Match match = new Match(Collections.<Argument>emptyList(), hook.getLocation(false));
+        stopWatch.start();
+        try {
+            hook.executeStepHook(stepResult);
+        } catch (Throwable t) {
+            error = t;
+            status = isPending(t) ? "pending" : Result.FAILED;
+            addError(t);
+        } finally {
+            long duration = stopWatch.stop();
+            Result result = new Result(status, duration, error, DUMMY_ARG);
+            stepResult.setStatus(status);
+            addHookToCounter(result);
+            if(hook.reportingEnabled()) {
+                if (isBefore) {
+                    reporter.before(match, result);
+                } else {
+                    reporter.after(match, result);
+                }
+            }
+        }
+    }
+
     private void runHooks(List<HookDefinition> hooks, Reporter reporter, Set<Tag> tags, boolean isBefore) {
         if (!runtimeOptions.isDryRun()) {
             for (HookDefinition hook : hooks) {
@@ -231,10 +273,12 @@ public class Runtime implements UnreportedStepExecutor {
                 long duration = stopWatch.stop();
                 Result result = new Result(status, duration, error, DUMMY_ARG);
                 addHookToCounterAndResult(result);
-                if (isBefore) {
-                    reporter.before(match, result);
-                } else {
-                    reporter.after(match, result);
+                if(hook.reportingEnabled()) {
+                    if (isBefore) {
+                        reporter.before(match, result);
+                    } else {
+                        reporter.after(match, result);
+                    }
                 }
             }
         }
@@ -326,6 +370,10 @@ public class Runtime implements UnreportedStepExecutor {
 
     private void addHookToCounterAndResult(Result result) {
         scenarioResult.add(result);
+        stats.addHookTime(result.getDuration());
+    }
+
+    private void addHookToCounter(Result result) {
         stats.addHookTime(result.getDuration());
     }
 }

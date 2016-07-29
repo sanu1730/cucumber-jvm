@@ -1,6 +1,7 @@
 package cucumber.runtime.jruby;
 
 import cucumber.api.Scenario;
+import cucumber.api.Step;
 import cucumber.runtime.HookDefinition;
 import gherkin.TagExpression;
 import gherkin.formatter.model.Tag;
@@ -53,5 +54,13 @@ public class JRubyHookDefinition implements HookDefinition {
     @Override
     public boolean isScenarioScoped() {
         return false;
+    }
+
+    @Override
+    public void executeStepHook(Step step) throws Throwable {throw new UnsupportedOperationException();}
+
+    @Override
+    public boolean reportingEnabled() {
+        return true;
     }
 }

@@ -76,6 +76,26 @@ public class JavaBackendTest {
         }
 
         @Override
+        public void addBeforeStepHook(HookDefinition hookDefinition) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void addAfterStepHook(HookDefinition hookDefinition) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<HookDefinition> getBeforeStepHooks() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<HookDefinition> getAfterStepHooks() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public StepDefinitionMatch stepDefinitionMatch(String featurePath, Step step, I18n i18n) {
             throw new UnsupportedOperationException();
         }

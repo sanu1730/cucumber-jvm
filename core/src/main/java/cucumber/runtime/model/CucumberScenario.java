@@ -40,8 +40,11 @@ public class CucumberScenario extends CucumberTagStatement {
         runtime.runBeforeHooks(reporter, tags);
 
         runBackground(formatter, reporter, runtime);
-        format(formatter);
-        runSteps(reporter, runtime);
+
+        //format(formatter);
+
+        // run the steps
+        runSteps(formatter, reporter, runtime);
 
         runtime.runAfterHooks(reporter, tags);
         formatter.endOfScenarioLifeCycle((Scenario) getGherkinModel());

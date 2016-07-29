@@ -1,8 +1,6 @@
 package cucumber.runtime.java;
 
-import cucumber.api.java.After;
-import cucumber.api.java.Before;
-import cucumber.api.java.ObjectFactory;
+import cucumber.api.java.*;
 import cucumber.api.java8.GlueBase;
 import cucumber.api.java8.HookBody;
 import cucumber.api.java8.HookNoArgsBody;
@@ -172,11 +170,27 @@ public class JavaBackend implements Backend {
             if (annotation.annotationType().equals(Before.class)) {
                 String[] tagExpressions = ((Before) annotation).value();
                 long timeout = ((Before) annotation).timeout();
-                glue.addBeforeHook(new JavaHookDefinition(method, tagExpressions, ((Before) annotation).order(), timeout, objectFactory));
-            } else {
+                boolean reportingEnabled = ((Before) annotation).reportingEnabled();
+                glue.addBeforeHook(new JavaHookDefinition(method, tagExpressions, ((Before) annotation).order(),
+                    timeout, objectFactory, reportingEnabled));
+            } else if (annotation.annotationType().equals(After.class)) {
                 String[] tagExpressions = ((After) annotation).value();
                 long timeout = ((After) annotation).timeout();
-                glue.addAfterHook(new JavaHookDefinition(method, tagExpressions, ((After) annotation).order(), timeout, objectFactory));
+                boolean reportingEnabled = ((After) annotation).reportingEnabled();
+                glue.addAfterHook(new JavaHookDefinition(method, tagExpressions, ((After) annotation).order(),
+                    timeout, objectFactory, reportingEnabled));
+            } else if (annotation.annotationType().equals(BeforeStepHook.class)) {
+                String[] tagExpressions = ((BeforeStepHook) annotation).value();
+                long timeout = ((BeforeStepHook) annotation).timeout();
+                boolean reportingEnabled = ((BeforeStepHook) annotation).reportingEnabled();
+                glue.addBeforeStepHook(new JavaHookDefinition(method, tagExpressions,
+                    ((BeforeStepHook) annotation).order(), timeout, objectFactory, reportingEnabled));
+            } else if (annotation.annotationType().equals(AfterStepHook.class)) {
+                String[] tagExpressions = ((AfterStepHook) annotation).value();
+                long timeout = ((AfterStepHook) annotation).timeout();
+                boolean reportingEnabled = ((AfterStepHook) annotation).reportingEnabled();
+                glue.addAfterStepHook(new JavaHookDefinition(method, tagExpressions, ((AfterStepHook) annotation).order(),
+                    timeout, objectFactory, reportingEnabled));
             }
         }
     }

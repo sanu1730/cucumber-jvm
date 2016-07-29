@@ -61,6 +61,7 @@ public class JSONPrettyFormatterTest {
 
     private File runFeaturesWithJSONPrettyFormatter(final List<String> featurePaths) throws IOException {
         HookDefinition hook = mock(HookDefinition.class);
+        when(hook.reportingEnabled()).thenReturn(true);
         when(hook.matches(anyListOf(Tag.class))).thenReturn(true);
         File report = File.createTempFile("cucumber-jvm-junit", ".json");
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();

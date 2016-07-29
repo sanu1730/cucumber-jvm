@@ -23,4 +23,6 @@ public @interface Before {
      * The default order is 10000.
      */
     int order() default 10000;
+
+    boolean reportingEnabled() default true;
 }
