@@ -91,7 +91,8 @@ def package_html = """\
 </body>
 """
 
-def unsupported = [] // We used to have problems with "kn", but it seems ok now.
+def unsupported = ["ht"] // We used to have problems with "kn", but it seems ok now.
+// I am seeing a problem with "ht"
 
 I18n.all.each { i18n ->
   if (!unsupported.contains(i18n.underscoredIsoCode)) {

@@ -104,7 +104,8 @@
        (matches [hd tags]
          (.evaluate te tags))
        (getOrder [hd] 0)
-       (isScenarioScoped [hd] false)))))
+       (isScenarioScoped [hd] false)
+       (reportingEnabled [hd] true)))))
 
 (defmethod add-hook-definition :after [_ tag-expression hook-fun location]
   (let [te (TagExpression. tag-expression)
@@ -125,7 +126,8 @@
        (matches [hd tags]
          (.evaluate te tags))
        (getOrder [hd] 0)
-       (isScenarioScoped [hd] false)))))
+       (isScenarioScoped [hd] false)
+       (reportingEnabled [hd] true)))))
 
 (defmacro step-macros [& names]
   (cons 'do
